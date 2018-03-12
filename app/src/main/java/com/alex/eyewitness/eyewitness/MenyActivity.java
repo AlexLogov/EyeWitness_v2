@@ -138,7 +138,7 @@ public class MenyActivity extends AppCompatActivity
     }
 
     private void stateOnMap() {
-        LatLng vMyPosition;
+
 
         ArrayList <Coordinates> fLastCoords = DBHelper.getInstance(this).getLastCoords(10);
 
@@ -151,7 +151,7 @@ public class MenyActivity extends AppCompatActivity
         vMap.clear();
 
         vMap.setMyLocationEnabled(true);
-
+        LatLng vMyPosition;
 
         try {
             vMyPosition = new LatLng(fLastCoords.get(0).getLat(), fLastCoords.get(0).getLng());

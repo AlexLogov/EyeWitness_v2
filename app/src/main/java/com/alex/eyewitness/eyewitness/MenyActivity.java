@@ -16,6 +16,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.SeekBar;
 import android.widget.Toast;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -32,8 +33,10 @@ import com.google.android.gms.maps.model.PolylineOptions;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 
+import static android.graphics.Color.argb;
+
 public class MenyActivity extends AppCompatActivity
-        implements NavigationView.OnNavigationItemSelectedListener, OnMapReadyCallback {
+        implements NavigationView.OnNavigationItemSelectedListener, OnMapReadyCallback , SeekBar.OnSeekBarChangeListener{
     private GoogleMap vMap;
 
 
@@ -62,8 +65,8 @@ public class MenyActivity extends AppCompatActivity
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
 
-        //MapView mapView = (MapView) findViewById(R.id.mapView);
-        //setContentView(mapView);
+        SeekBar fSeekBar = (SeekBar)findViewById(R.id.seekBar);
+        fSeekBar.setOnSeekBarChangeListener(this);
 
         MapFragment mapFragment = (MapFragment) getFragmentManager()
                 .findFragmentById(R.id.map);
@@ -113,7 +116,9 @@ public class MenyActivity extends AppCompatActivity
 
         if (id == R.id.nav_camera) {
             // Handle the camera action
-            stateOnMap();
+            SeekBar fSeekBar = (SeekBar)findViewById(R.id.seekBar);
+
+            stateOnMap(fSeekBar.getProgress());
         } else if (id == R.id.nav_gallery) {
 
         } else if (id == R.id.nav_slideshow) {
@@ -134,13 +139,15 @@ public class MenyActivity extends AppCompatActivity
     @Override
     public void onMapReady(GoogleMap map) {
         vMap = map;
-        stateOnMap();
+
+        SeekBar fSeekBar = (SeekBar)findViewById(R.id.seekBar);
+        stateOnMap(fSeekBar.getProgress());
     }
 
-    private void stateOnMap() {
+    private void stateOnMap(int pCountLines) {
 
 
-        ArrayList <Coordinates> fLastCoords = DBHelper.getInstance(this).getLastCoords(10);
+        ArrayList <Coordinates> fLastCoords = DBHelper.getInstance(this).getLastCoords(pCountLines);
 
         if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
 
@@ -159,20 +166,20 @@ public class MenyActivity extends AppCompatActivity
             //int i = 0;
             SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
             PolylineOptions vPoly = new PolylineOptions();
-            for (int i = 0; i < fLastCoords.size()-1; i++ ){
+            for (int i = 0; i < fLastCoords.size(); i++ ){
                 LatLng vPos = new LatLng(fLastCoords.get(i).getLat(), fLastCoords.get(i).getLng());
+                Float fAlpha = (float)(fLastCoords.size()-i)/(fLastCoords.size());
                 vMap.addMarker(new MarkerOptions()
                         .title("Pos " + Integer.toString(i))
                         .snippet("At " + dateFormat.format(fLastCoords.get(i).getInserted()))
-                        .position(vPos));
+                        .position(vPos).alpha(fAlpha));
 
-                CircleOptions co = new CircleOptions();
-                co.center(vPos).radius(fLastCoords.get(i).getAccuracy()).fillColor(0x220011AA).strokeColor(0x110011AA);
-
-                vMap.addCircle(co);
+                //CircleOptions co = new CircleOptions();
+                //co.center(vPos).radius(fLastCoords.get(i).getAccuracy()).fillColor(0x220011AA).strokeColor(0x110011AA);
+               // vMap.addCircle(co);
 
                 vPoly.add(vPos);
-                vPoly.width(i < 10 ? (i < 1 ? 1 : i) : 10);
+
 
 
                 //i++;
@@ -188,5 +195,21 @@ public class MenyActivity extends AppCompatActivity
 
 
 
+    }
+
+    @Override
+    public void onProgressChanged(SeekBar seekBar, int i, boolean b) {
+
+    }
+
+    @Override
+    public void onStartTrackingTouch(SeekBar seekBar) {
+
+    }
+
+    @Override
+    public void onStopTrackingTouch(SeekBar seekBar) {
+        stateOnMap(seekBar.getProgress());
+        Toast.makeText(getBaseContext(), "Show last " + Integer.toString(seekBar.getProgress()) +" saved steps.", Toast.LENGTH_SHORT).show();
     }
 }

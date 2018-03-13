@@ -2,6 +2,7 @@ package com.alex.eyewitness.eyewitness;
 
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
@@ -25,6 +26,8 @@ import com.google.android.gms.maps.MapFragment;
 import com.google.android.gms.maps.MapView;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptor;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
@@ -37,8 +40,8 @@ import static android.graphics.Color.argb;
 
 public class MenyActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener, OnMapReadyCallback , SeekBar.OnSeekBarChangeListener{
-    private GoogleMap vMap;
 
+    private GoogleMap vMap;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -51,8 +54,21 @@ public class MenyActivity extends AppCompatActivity
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
+                //Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG).setAction("Action", null).show();
+                SeekBar fSeekBar = (SeekBar)findViewById(R.id.seekBar);
+                ArrayList <Coordinates> fLastCoords = DBHelper.getInstance(view.getContext()).getLastCoords(fSeekBar.getProgress());
+                Double fMinDistanle = CoordinatesWorker.genMinDistance(vMap.getCameraPosition().target.longitude, vMap.getCameraPosition().target.latitude,fLastCoords );
+                if (fMinDistanle < 0.002){
+                    vMap.addMarker(new MarkerOptions()
+                            .title("Pos " + Integer.toString(1))
+                            //.snippet("At " + dateFormat.format(fLastCoords.get(i).getInserted()))
+                            .position(vMap.getCameraPosition().target).icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE)));
+                }else{
+                    vMap.addMarker(new MarkerOptions()
+                            .title("Pos " + Integer.toString(1))
+                            //.snippet("At " + dateFormat.format(fLastCoords.get(i).getInserted()))
+                            .position(vMap.getCameraPosition().target).icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED)));
+                }
             }
         });
 
@@ -75,6 +91,7 @@ public class MenyActivity extends AppCompatActivity
         startService(new Intent(this, GeoService2.class));
         Toast.makeText(getBaseContext(), "GeoService2 succesfull start.", Toast.LENGTH_LONG).show();
     }
+
 
     @Override
     public void onBackPressed() {
@@ -162,7 +179,7 @@ public class MenyActivity extends AppCompatActivity
 
         try {
             vMyPosition = new LatLng(fLastCoords.get(0).getLat(), fLastCoords.get(0).getLng());
-            vMap.moveCamera(CameraUpdateFactory.newLatLngZoom(vMyPosition, 13));
+            vMap.moveCamera(CameraUpdateFactory.newLatLngZoom(vMyPosition, 15));
             //int i = 0;
             SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
             PolylineOptions vPoly = new PolylineOptions();

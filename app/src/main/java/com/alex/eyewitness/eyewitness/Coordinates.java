@@ -7,7 +7,7 @@ import java.util.Date;
  * Created by Alex on 10.03.2018.
  */
 
-public class Coordinates extends ArrayList <Coordinates> {
+public class Coordinates {
     private Double lng;
     private Double lat;
     private Double accuracy;

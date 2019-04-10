@@ -188,4 +188,12 @@ public class DBHelper extends SQLiteOpenHelper {
         //vDb.close();
         return vVal;
     }
+
+    public void delOldValues (){
+
+        String vVal = null;
+        String sql = "DELETE FROM "+CCORDINATES_TABLE_NAME+" where inserted <= date('now','-30 day') ";
+        vDb.execSQL(sql);
+
+    }
 }

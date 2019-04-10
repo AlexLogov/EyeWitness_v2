@@ -41,7 +41,12 @@ import static android.graphics.Color.argb;
 public class MenyActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener, OnMapReadyCallback , SeekBar.OnSeekBarChangeListener{
 
-    private GoogleMap vMap;
+    private static GoogleMap vMap;
+
+
+    public static GoogleMap getvMap() {
+        return vMap;
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -89,6 +94,9 @@ public class MenyActivity extends AppCompatActivity
         mapFragment.getMapAsync(this);
 
         startService(new Intent(this, GeoService2.class));
+
+
+
         Toast.makeText(getBaseContext(), "GeoService2 succesfull start.", Toast.LENGTH_LONG).show();
     }
 

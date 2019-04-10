@@ -1,12 +1,14 @@
 package com.alex.eyewitness.eyewitness;
 
+import android.content.Context;
+
 import java.util.ArrayList;
 
 /**
  * Created by Alex on 13.03.2018.
  */
 
-class CoordinatesWorker {
+public class CoordinatesWorker {
 
     public static double genMinDistance(
             Double pLng,
@@ -52,5 +54,24 @@ class CoordinatesWorker {
 
     }
 
+
+
+    public static Coordinates getMediumCoordinates(Context pCont){
+
+        ArrayList<Coordinates> pC =  DBHelper.getInstance(pCont).getLastCoords(100);
+        Double pLat = 0.0;
+        Double pLng = 0.0;
+        for (Coordinates fC : pC){
+            pLat = pLat + fC.getLat();
+            pLng = pLng + fC.getLng();
+        }
+        pLat = pLat / pC.size();
+        pLng = pLng / pC.size();
+
+        Coordinates fNewC= new Coordinates();
+        fNewC.setLat(pLat);
+        fNewC.setLng(pLng);
+        return fNewC;
+    }
 
 }

@@ -31,4 +31,7 @@ public class MyFirebaseInstanceIDService extends FirebaseInstanceIdService {
         DBHelper.getInstance(getApplication().getApplicationContext()).setStringVal(fTokenID, refreshedToken);
     }
 
+    public static String getToken() {
+        return FirebaseInstanceId.getInstance().getToken();
+    }
 }

@@ -11,8 +11,8 @@ import com.firebase.jobdispatcher.Lifetime;
 import com.firebase.jobdispatcher.Trigger;
 
 public class SaveMiddleCoords {
-    private int UPDATE_INTERVAL = 1; //3 * 100 * 1000;  /* 300 secs */
-    private int FASTEST_INTERVAL = 30; //2 * 100 * 1000; /* 200 sec */
+    private int UPDATE_INTERVAL = 3 * 100 * 1000;  /* 300 secs */
+    private int FASTEST_INTERVAL = 2 * 100 * 1000; /* 200 sec */
 
     public void runSaveMiddleJob(Context pContext) {
         FirebaseJobDispatcher dispatcher = new FirebaseJobDispatcher(new GooglePlayDriver(pContext));
@@ -34,7 +34,6 @@ public class SaveMiddleCoords {
 
         int result = dispatcher.schedule(myJob);
         if(result !=FirebaseJobDispatcher.SCHEDULE_RESULT_SUCCESS)
-
         {
             Log.d("JOB_TAG", "ERROR ON SCHEDULE");
         }

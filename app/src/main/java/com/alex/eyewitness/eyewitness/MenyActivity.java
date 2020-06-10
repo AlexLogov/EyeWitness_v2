@@ -1,13 +1,18 @@
 package com.alex.eyewitness.eyewitness;
 
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
+import android.support.v4.content.LocalBroadcastManager;
 import android.view.View;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
@@ -20,6 +25,7 @@ import android.view.MenuItem;
 import android.widget.SeekBar;
 import android.widget.Toast;
 
+import com.alex.eyewitness.eyewitness.messages.NotificationInfo;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapFragment;
@@ -33,6 +39,7 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PolylineOptions;
 
+import java.lang.ref.WeakReference;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 
@@ -41,12 +48,13 @@ import static android.graphics.Color.argb;
 public class MenyActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener, OnMapReadyCallback , SeekBar.OnSeekBarChangeListener{
 
-    private static GoogleMap vMap;
-
-
+    private static GoogleMap googleMap ;
     public static GoogleMap getvMap() {
-        return vMap;
+        return googleMap;
     }
+
+    private NotificationBroadcastReceiver mNotificationBroadcastReceiver = null;
+    private IntentFilter mIntentFilter = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -62,17 +70,17 @@ public class MenyActivity extends AppCompatActivity
                 //Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG).setAction("Action", null).show();
                 SeekBar fSeekBar = (SeekBar)findViewById(R.id.seekBar);
                 ArrayList <Coordinates> fLastCoords = DBHelper.getInstance(view.getContext()).getLastCoords(fSeekBar.getProgress());
-                Double fMinDistanle = CoordinatesWorker.genMinDistance(vMap.getCameraPosition().target.longitude, vMap.getCameraPosition().target.latitude,fLastCoords );
+                Double fMinDistanle = CoordinatesWorker.genMinDistance(googleMap .getCameraPosition().target.longitude, googleMap .getCameraPosition().target.latitude,fLastCoords );
                 if (fMinDistanle < 0.002){
-                    vMap.addMarker(new MarkerOptions()
+                    googleMap .addMarker(new MarkerOptions()
                             .title("Pos " + Integer.toString(1))
                             //.snippet("At " + dateFormat.format(fLastCoords.get(i).getInserted()))
-                            .position(vMap.getCameraPosition().target).icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE)));
+                            .position(googleMap .getCameraPosition().target).icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE)));
                 }else{
-                    vMap.addMarker(new MarkerOptions()
+                    googleMap .addMarker(new MarkerOptions()
                             .title("Pos " + Integer.toString(1))
                             //.snippet("At " + dateFormat.format(fLastCoords.get(i).getInserted()))
-                            .position(vMap.getCameraPosition().target).icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED)));
+                            .position(googleMap .getCameraPosition().target).icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED)));
                 }
             }
         });
@@ -96,10 +104,27 @@ public class MenyActivity extends AppCompatActivity
         startService(new Intent(this, GeoService2.class));
 
 
+        this.mNotificationBroadcastReceiver = new NotificationBroadcastReceiver(this);
+        this.mIntentFilter = new IntentFilter(Constants.NOTIFICATION_BROADCAST_RECEIVER_MESSAGE_RECEIVED);
 
         Toast.makeText(getBaseContext(), "GeoService2 succesfull start.", Toast.LENGTH_LONG).show();
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+        LocalBroadcastManager.getInstance(this).registerReceiver(this.mNotificationBroadcastReceiver, this.mIntentFilter);
+    }
+    @Override
+    protected void onPause() {
+        if (this.mNotificationBroadcastReceiver != null) {
+            LocalBroadcastManager.getInstance(this).unregisterReceiver(this.mNotificationBroadcastReceiver);
+           // unregisterReceiver(mNotificationBroadcastReceiver);
+            this.mNotificationBroadcastReceiver = null;
+        }
+
+        super.onPause();
+    }
 
     @Override
     public void onBackPressed() {
@@ -163,10 +188,13 @@ public class MenyActivity extends AppCompatActivity
 
     @Override
     public void onMapReady(GoogleMap map) {
-        vMap = map;
+        googleMap = map;
 
         SeekBar fSeekBar = (SeekBar)findViewById(R.id.seekBar);
         stateOnMap(fSeekBar.getProgress());
+
+
+
     }
 
     private void stateOnMap(int pCountLines) {
@@ -180,21 +208,21 @@ public class MenyActivity extends AppCompatActivity
         }
 
 
-        vMap.clear();
+        googleMap.clear();
 
-        vMap.setMyLocationEnabled(true);
+        googleMap.setMyLocationEnabled(true);
         LatLng vMyPosition;
 
         try {
             vMyPosition = new LatLng(fLastCoords.get(0).getLat(), fLastCoords.get(0).getLng());
-            vMap.moveCamera(CameraUpdateFactory.newLatLngZoom(vMyPosition, 15));
+            googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(vMyPosition, 15));
             //int i = 0;
             SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
             PolylineOptions vPoly = new PolylineOptions();
             for (int i = 0; i < fLastCoords.size(); i++ ){
                 LatLng vPos = new LatLng(fLastCoords.get(i).getLat(), fLastCoords.get(i).getLng());
                 Float fAlpha = (float)(fLastCoords.size()-i)/(fLastCoords.size());
-                vMap.addMarker(new MarkerOptions()
+                googleMap.addMarker(new MarkerOptions()
                         .title("Pos " + Integer.toString(i))
                         .snippet("At " + dateFormat.format(fLastCoords.get(i).getInserted()))
                         .position(vPos).alpha(fAlpha));
@@ -209,7 +237,7 @@ public class MenyActivity extends AppCompatActivity
 
                 //i++;
             }
-            vMap.addPolyline(vPoly);
+            googleMap.addPolyline(vPoly);
 
         } catch (Exception ex) {
             vMyPosition = new LatLng(0, 0);
@@ -236,5 +264,49 @@ public class MenyActivity extends AppCompatActivity
     public void onStopTrackingTouch(SeekBar seekBar) {
         stateOnMap(seekBar.getProgress());
         Toast.makeText(getBaseContext(), "Show last " + Integer.toString(seekBar.getProgress()) +" saved steps.", Toast.LENGTH_SHORT).show();
+    }
+
+    private class NotificationBroadcastReceiver extends BroadcastReceiver {
+
+        WeakReference<MenyActivity> mMainActivity;
+        private Context context;
+        private Intent intent;
+
+        public NotificationBroadcastReceiver(MenyActivity mainActivity) {
+            this.mMainActivity = new WeakReference<>(mainActivity);
+        }
+
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            this.context = context;
+            this.intent = intent;
+            MenyActivity mainActivity = mMainActivity.get();
+            if (mainActivity != null) {
+                Bundle extras = intent.getExtras();
+                if (extras != null && extras.containsKey(Constants.PARAM_NOTIFICATION_INFO)) {
+                    NotificationInfo notificationInfo = (NotificationInfo) extras.getSerializable(Constants.PARAM_NOTIFICATION_INFO);
+                    mainActivity.notificationReceived(notificationInfo);
+                }
+            }
+        }
+
+    }
+
+    public void notificationReceived(@NonNull final NotificationInfo notificationInfo)
+    {
+        //handle the notification in MainActivity
+
+        if (notificationInfo.minDistanle < 0.002){
+            googleMap.addMarker(new MarkerOptions()
+                    .title("Pos " + Integer.toString(1))
+                    //.snippet("At " + dateFormat.format(fLastCoords.get(i).getInserted()))
+                    .position(googleMap.getCameraPosition().target).icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN)));
+        }else{
+            googleMap.addMarker(new MarkerOptions()
+                    .title("Pos " + Integer.toString(1))
+                    //.snippet("At " + dateFormat.format(fLastCoords.get(i).getInserted()))
+                    .position(new LatLng(notificationInfo.latitude, notificationInfo.longetude)).icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_YELLOW)));
+        }
+
     }
 }

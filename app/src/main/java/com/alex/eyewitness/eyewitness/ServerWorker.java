@@ -31,14 +31,17 @@ public class ServerWorker {
 
     private static void post(final Context pContext, final String url, final HttpEntity entity, final AsyncHttpResponseHandler responseHandler) {
         Handler mainHandler = new Handler(Looper.getMainLooper());
-        Runnable myRunnable = new Runnable() {
-            @Override
-            public void run() {
-                client.post(pContext, getAbsoluteUrl(url), entity, "application/json", responseHandler);
-            }
-        };
-        mainHandler.post(myRunnable);
-
+        try {
+            Runnable myRunnable = new Runnable() {
+                @Override
+                public void run() {
+                    client.post(pContext, getAbsoluteUrl(url), entity, "application/json", responseHandler);
+                }
+            };
+            mainHandler.post(myRunnable);
+        }catch(Exception e){
+            e.printStackTrace();
+        }
     }
 
     private static String getAbsoluteUrl(String relativeUrl) {

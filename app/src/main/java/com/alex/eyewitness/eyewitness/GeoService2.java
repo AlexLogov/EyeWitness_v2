@@ -11,6 +11,7 @@ import android.os.Bundle;
 import android.os.IBinder;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
+import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -57,7 +58,7 @@ public class GeoService2 extends Service {
     @Override
     public IBinder onBind(Intent intent) {
         // TODO: Return the communication channel to the service.
-        throw new UnsupportedOperationException("Not yet implemented");
+        throw new UnsupportedOperationException("GeoService2 onBind is Not yet implemented");
     }
 
     @Override
@@ -66,21 +67,22 @@ public class GeoService2 extends Service {
         //dbHelper.initDb();
         //db = dbHelper.getWritableDatabase();
 
-
+        Log.d("eyewitness", "GeoService2 onStartCommand" );
         if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             return super.onStartCommand(intent, flags, startId);
 
         }
-        StartLocationService fStartLocationService = new StartLocationService();
-        fStartLocationService.StartLocationService(this);
 
-        StartAll fStartAll = new StartAll();
-        fStartAll.startAll(this);
-
+        try {
+            StartAll fStartAll = new StartAll();
+            fStartAll.startAll(this);
+        } catch (Exception ex) {
+            Log.d("eyewitness", "GeoService2 Exception2 ", ex );
+        }
+        Log.d("eyewitness", "Location initialized." );
         Toast.makeText(getBaseContext(), "Location initialized.", Toast.LENGTH_LONG).show();
         return super.onStartCommand(intent, flags, startId);
     }
-
 
 
 }

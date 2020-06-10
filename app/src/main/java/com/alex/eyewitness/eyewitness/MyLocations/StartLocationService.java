@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.ContextWrapper;
 import android.content.pm.PackageManager;
 import android.location.Location;
+import android.os.Looper;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.util.Log;
@@ -29,7 +30,7 @@ import com.google.android.gms.tasks.Task;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-public class StartLocationService {
+public class StartLocationService  {
 
     private long UPDATE_INTERVAL = 3 * 100 * 1000;  /* 300 secs */
     private long FASTEST_INTERVAL = 2 * 100 * 1000; /* 200 sec */
@@ -40,7 +41,7 @@ public class StartLocationService {
 
 
     public void StartLocationService(Context pContext){
-
+        Log.d("eyewitness", "StartLocationService" );
 
         final Context vCont = pContext;
 
@@ -58,6 +59,7 @@ public class StartLocationService {
         task.addOnSuccessListener(new OnSuccessListener<LocationSettingsResponse>() {
             @Override
             public void onSuccess(LocationSettingsResponse locationSettingsResponse) {
+                Log.d("eyewitness", "addOnSuccessListener" );
                 String mStr = locationSettingsResponse.getLocationSettingsStates().toString();
                 // All location settings are satisfied. The client can initialize
                 // location requests here.
@@ -70,6 +72,7 @@ public class StartLocationService {
             @Override
             public void onFailure(@NonNull Exception e) {
                 if (e instanceof ResolvableApiException) {
+                    Log.d("eyewitness", "addOnFailureListener" );
                     // Location settings are not satisfied, but this can be fixed
                     // by showing the user a dialog.
                     // Show the dialog by calling startResolutionForResult(),
@@ -83,7 +86,9 @@ public class StartLocationService {
         mLocationCallback = new LocationCallback() {
             @Override
             public void onLocationResult(LocationResult locationResult) {
+                Log.d("eyewitness", "LocationCallback" );
                 for (Location location : locationResult.getLocations()) {
+                    Log.d("eyewitness", "LocationCallback loop" );
                     String gLatityde = Double.toString(location.getLatitude());
                     String gLongitude = Double.toString(location.getLongitude());
                     Log.v("qwe123", "gLatityde='"+gLatityde+"' gLongitude='"+gLongitude+"'");
@@ -111,6 +116,7 @@ public class StartLocationService {
 
 
     private void startLocationUpdates(Context pContext) {
+        Log.d("eyewitness", "startLocationUpdates" );
         if (ActivityCompat.checkSelfPermission(pContext, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(pContext, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             // TODO: Consider calling
             //    ActivityCompat#requestPermissions
@@ -121,8 +127,11 @@ public class StartLocationService {
             // for ActivityCompat#requestPermissions for more details.
             return;
         }
+        Log.d("eyewitness", "requestLocationUpdates" );
         mFusedLocationClient.requestLocationUpdates(mLocationRequest,
                 mLocationCallback,
-                null /* Looper */);
+                Looper.myLooper() /* Looper */);
     }
+
+
 }

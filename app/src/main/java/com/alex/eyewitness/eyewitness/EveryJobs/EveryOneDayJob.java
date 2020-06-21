@@ -13,10 +13,6 @@ public class EveryOneDayJob extends JobService {
 
     @Override
     public boolean onStartJob(JobParameters jobParameters) {
-        // запуск сервиса определения координат, если он еще не запущен
-        StartLocationService fStartLocationService = new StartLocationService();
-        fStartLocationService.StartLocationService(this);
-
         // удаление старых записей по координатам
         DBHelper.getInstance(this).delOldValues();
         return false;

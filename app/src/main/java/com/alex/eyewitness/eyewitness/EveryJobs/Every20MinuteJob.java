@@ -24,8 +24,8 @@ public class Every20MinuteJob extends JobService {
 
         Log.d("eyewitness", "GeoService2 after onStartCommand" );
         try {
-            StartLocationService fStartLocationService = new StartLocationService();
-            fStartLocationService.StartLocationService(this);
+            StartLocationService fStartLocationService = StartLocationService.getInstance();
+            fStartLocationService.init(this);
         } catch (Exception ex) {
             Log.d("eyewitness", "GeoService2 Exception1 ", ex );
         }
